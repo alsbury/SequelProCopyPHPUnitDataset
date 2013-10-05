@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>author</key>
+	<string>Hans-Jörg Bibiko</string>
+	<key>category</key>
+	<string>CopyPHPUnitDataset</string>
+	<key>command</key>
+	<string>cat | perl -e '
+
+use Data::Dumper;
+
+# read first line to get the column names (header)
+$firstLine = &lt;&gt;;
+
+# bail if nothing could read
+if(!defined($firstLine)) {
+	exit 0;
+}
+
+# store the column names
+chomp($firstLine);
+$firstLine =~ s/\"/\\\"/g;  # escape "
+@header = split(/\t/, $firstLine);
+
+$h_cnt = $#header;     # number of columns
+
+# get the column definitions
+open(META, $ENV{"SP_BUNDLE_INPUT_TABLE_METADATA"}) or die $!;
+@meta = ();
+while(&lt;META&gt;) {
+	chomp();
+	echo;
+	my @arr = split(/\t/);
+	push @meta, \@arr;
+}
+close(META);
+
+$table = $ENV{"SP_SELECTED_TABLE"};
+print "&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;\n";
+print "&lt;dataset&gt;\n\t\n";
+
+# read row data of each selected row
+$rowData=&lt;&gt;;
+while($rowData) {
+
+	print "    &lt;$table\n";
+
+	# remove line ending
+	chomp($rowData);
+
+	# escape "
+	$rowData=~s/\"/\\\"/g;
+
+	# split column data which are tab-delimited
+	@data = split(/\t/, $rowData);
+	for($i=0; $i&lt;=$h_cnt; $i++) {
+
+		# re-escape \t and \n
+		$cellData = $data[$i];
+		$cellData =~ s/↵/\n/g;
+		$cellData =~ s/⇥/\t/g;
+
+		if($cellData eq "NULL") {
+		} else {
+			print "        $header[$i]=";
+		}
+
+		
+		# check for data types
+		if($cellData eq "NULL") {
+		} else {
+			chomp($cellData);
+			print "\"$cellData\"\n";
+		}
+	}
+
+	print "\t/&gt;";
+
+	# get next row
+	$rowData=&lt;&gt;;
+
+	print "\n";
+}
+
+print "\n&lt;/dataset&gt;";
+
+' | __CF_USER_TEXT_ENCODING=$UID:0x8000100:0x8000100 pbcopy</string>
+	<key>contact</key>
+	<string>znvy@ovovxb.qr</string>
+	<key>defaultBundleWasModified</key>
+	<true/>
+	<key>description</key>
+	<string>Copies the selected rows excluding any BLOB data in a data table JSON formatted into the pasteboard.
+
+Version 1.0</string>
+	<key>input</key>
+	<string>selectedtablerowsastab</string>
+	<key>internalKeyEquivalent</key>
+	<dict>
+		<key>characters</key>
+		<string>P</string>
+		<key>keyCode</key>
+		<integer>35</integer>
+		<key>modifierFlags</key>
+		<integer>1835008</integer>
+	</dict>
+	<key>isDefaultBundle</key>
+	<true/>
+	<key>keyEquivalent</key>
+	<string>^~@p</string>
+	<key>name</key>
+	<string>Copy as PHPUnit Dataset</string>
+	<key>output</key>
+	<string>none</string>
+	<key>scope</key>
+	<string>datatable</string>
+	<key>tooltip</key>
+	<string>Generate PHPUnit Dataset XML</string>
+	<key>uuid</key>
+	<string>09DD0B70-3535-452C-AE05-39F24FD4A313</string>
+	<key>withblob</key>
+	<string>exclude</string>
+</dict>
+</plist>
